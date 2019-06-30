@@ -1,0 +1,280 @@
+
+\usepackage{array}
+\usepackage{makecell}
+
+\usepackage{colortbl} % provides arrayrulecolor
+\usepackage{graphicx}
+\usepackage{relsize}      % provide relative font size changes
+\usepackage{xspace}
+
+
+\renewcommand{\baselinestretch}{.8}
+\pagestyle{empty}
+
+\makeatletter 
+
+\makeatother
+
+\setlength{\parindent}{0pt}
+
+%%--------------------------------------------------
+%% Sections & titles
+\setlength{\parskip}{0.4\baselineskip}
+\newcommand{\headline}[1]{\vspace{0.2\baselineskip}\textbf{#1}}
+
+%%--------------------------------------------------
+%% Horizontal gray rules
+
+\newenvironment{userendnotes}[1]
+  {
+    \vspace{1ex}
+    \setlength{\parskip}{1.2\baselineskip}
+  }
+  { 
+    \setlength{\parskip}{0.4\baselineskip}
+  }
+
+\newcommand{\hgrayrule}{\par\noindent\textcolor{gray}{\rule{0.31\textwidth}{0.4pt}}}
+
+%%--------------------------------------------------
+%% array
+\renewcommand\cellgape{\Gape[4pt]}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+%%--------------------------------------------------
+%% Title
+\newcommand{\CheatsheetTitle}[1]{
+  \vbox { 
+    \kern -6ex 
+    \mbox{ 
+      \includegraphics[scale=0.15]{common/cpp_logo} 
+      \hspace{1em} 
+      \raisebox{3ex}{
+        \vbox{ 
+          \hbox{\Huge \textsc{\Cpp Cheatsheet - #1} } 
+          \kern 1ex
+          \hbox{ \kern 0.1em Bibliography: \href{http://isocpp.org}{isocpp.org}, \href{http://cppreference.com}{cppreference.com}, \href{https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines}{CppCoreGuidelines}}
+        }
+      }
+    }
+  }
+}
+
+\usepackage{titlesec}
+\titlespacing\section{0pt}{\parskip}{-0.5\parskip}
+\titlespacing\subsection{0pt}{\parskip}{-0.5\parskip}
+\titlespacing\subsubsection{0pt}{\parskip}{-0.5\parskip}
+
+
+%%--------------------------------------------------
+%% fix interaction between hyperref and other
+%% commands
+\pdfstringdefDisableCommands{\def\smaller#1{#1}}
+\pdfstringdefDisableCommands{\def\textbf#1{#1}}
+\pdfstringdefDisableCommands{\def\raisebox#1{}}
+\pdfstringdefDisableCommands{\def\hspace#1{}}
+
+
+%%--------------------------------------------------
+%% URL
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=blue,      
+    urlcolor=blue,
+}
+ 
+\urlstyle{same}
+
+\newcommand{\hrefbf}[2]{\href{#1}{\textbf{#2}}}
+\newcommand{\hrefcode}[2]{\href{#1}{\tcode{#2}}}
+\newcommand{\hrefrequirements}[2]{\href{#1}{\textit{#2}}}
+\newcommand{\hlink}[2]{\hyperlink{#1}{#2}}
+\newcommand{\hlinkb}[2]{\hyperlink{#1}{\textbf{#2}}}
+
+
+
+%%--------------------------------------------------
+%% C++
+
+\newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
+%\newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.25ex}{+}}
+%\newcommand{\Rplus}{+}
+\newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
+
+%%--------------------------------------------------
+%% Info
+
+\definecolor{darkgreen}{RGB}{0,128,0}
+\definecolor{darkorange}{RGB}{224, 96, 0}
+
+\newcommand{\tmark}[1]{{\smaller\smaller \textcolor{darkgreen}{(#1)}}}
+\newcommand{\tsincecxx}[1]{\tmark{since \Cpp\/#1}}
+\newcommand{\tuntilcxx}[1]{\tmark{until \Cpp\/#1}}
+
+\newcommand{\tmarkts}[1]{{\smaller\smaller \textcolor{darkorange}{(#1)}}}
+
+
+% Inline code
+
+\newcommand{\CodeStyle}{\ttfamily}
+\newcommand{\CodeStylex}[1]{\texttt{#1}}
+%\newcommand{\CodeStylex}[1]{\ttfamily{#1}}
+%\newcommand{\CodeStylex}[1]{{\fontfamily{normalfont}\selectfont #1}}
+\newcommand{\tcode}[1]{\CodeStylex{#1}}
+
+% Inline code (framed)
+
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+
+\definecolor{boxtfcode_border}{RGB}{214,214,214}
+\definecolor{boxtfcode_bg}{RGB}{245,245,245}
+
+\newtcbox{\boxtfcode}[1][boxtfcode_border]{on line,
+	%size = tight,
+    top=2pt,left=1pt,right=1pt,bottom=2pt,
+    colback=boxtfcode_bg, colframe=boxtfcode_border, 
+	boxsep=0pt, 
+	boxrule=1pt, 
+	arc=2pt
+	}
+
+\newcommand{\tfcode}[1]{\mbox{\boxtfcode{\tcode{#1}}}\xspace}
+
+% Syntax
+
+\newcommand{\tsyntax}[1]{\textcolor{gray}{\textit{#1}}}
+
+
+%%--------------------------------------------------
+%% Code listings
+
+\usepackage{listings}
+\tcbuselibrary{listings,skins}
+
+\definecolor{main-color}{rgb}{0.6627, 0.7176, 0.7764}
+\definecolor{back-color}{rgb}{0.1686, 0.1686, 0.1686}
+%\definecolor{string-color}{rgb}{0.3333, 0.5254, 0.345}
+\definecolor{string-color}{RGB}{51, 153, 0}
+%\definecolor{key-color}{rgb}{0.8, 0.47, 0.196}
+\definecolor{key-color}{RGB}{0,0,221}
+\definecolor{preprocessor-color}{RGB}{51, 153, 0}
+\definecolor{number-color}{RGB}{0, 0, 128}
+\definecolor{comment-color}{RGB}{144,144,144}
+
+\newcommand*{\FormatDigit}[1]{\textcolor{number-color}{#1}}
+
+\lstset{language=C++,
+        basicstyle=\ttfamily,
+        keywordstyle=\color{key-color}\ttfamily,
+        stringstyle=\color{string-color}\ttfamily,
+        xleftmargin=0.5em,
+        showstringspaces=false,
+        commentstyle=\itshape\ttfamily,
+        columns=flexible,
+        keepspaces=true,
+        texcl=true,
+		tabsize=4,
+		aboveskip=1pt,
+		belowskip=0pt,
+		literate={\ \ }{{\ }}1
+		{0}{{\FormatDigit{0}}}{1}%
+        {1}{{\FormatDigit{1}}}{1}%
+        {2}{{\FormatDigit{2}}}{1}%
+        {3}{{\FormatDigit{3}}}{1}%
+        {4}{{\FormatDigit{4}}}{1}%
+        {5}{{\FormatDigit{5}}}{1}%
+        {6}{{\FormatDigit{6}}}{1}%
+        {7}{{\FormatDigit{7}}}{1}%
+        {8}{{\FormatDigit{8}}}{1}%
+        {9}{{\FormatDigit{9}}}{1}%
+        {.0}{{\FormatDigit{.0}}}{2}% Following is to ensure that only periods
+        {.1}{{\FormatDigit{.1}}}{2}% followed by a digit are changed.
+        {.2}{{\FormatDigit{.2}}}{2}%
+        {.3}{{\FormatDigit{.3}}}{2}%
+        {.4}{{\FormatDigit{.4}}}{2}%
+        {.5}{{\FormatDigit{.5}}}{2}%
+        {.6}{{\FormatDigit{.6}}}{2}%
+        {.7}{{\FormatDigit{.7}}}{2}%
+        {.8}{{\FormatDigit{.8}}}{2}%
+        {.9}{{\FormatDigit{.9}}}{2}%
+        %{,}{{\FormatDigit{,}}{1}% depends if you want the "," in color
+		}
+
+\newcommand{\CodeBlockSetup}{
+ \lstset{escapechar=@}
+}
+
+%\lstnewenvironment{codeblock}{
+%    \CodeBlockSetup
+%}{}
+
+\lstnewenvironment{hsynopsis}{
+    \CodeBlockSetup
+}{}
+
+\newtcblisting{codeblock}[0]{
+    top=0pt,left=2pt,right=2pt,bottom=0pt,
+    colback=boxtfcode_bg, colframe=boxtfcode_border, 
+	boxsep=0pt, 
+	boxrule=1pt, 
+	arc=2pt,
+    listing only,
+	listing options={language=C++,
+        basicstyle=\small\CodeStyle,
+        keywordstyle=\color{key-color}\small\CodeStyle,
+		numberstyle=\color{number-color}\small\CodeStyle,
+        stringstyle=\color{string-color}\small\CodeStyle,
+        xleftmargin=0em,
+        showstringspaces=false,
+        %commentstyle=\itshape\rmfamily,
+		commentstyle=\color{comment-color}\small\CodeStyle,
+		directivestyle=\color{preprocessor-color}\small\CodeStyle,
+        columns=flexible,
+        keepspaces=true,
+        texcl=true,
+		tabsize=4,
+        literate={\ \ }{{\ }}1
+		{0}{{\FormatDigit{0}}}{1}%
+        {1}{{\FormatDigit{1}}}{1}%
+        {2}{{\FormatDigit{2}}}{1}%
+        {3}{{\FormatDigit{3}}}{1}%
+        {4}{{\FormatDigit{4}}}{1}%
+        {5}{{\FormatDigit{5}}}{1}%
+        {6}{{\FormatDigit{6}}}{1}%
+        {7}{{\FormatDigit{7}}}{1}%
+        {8}{{\FormatDigit{8}}}{1}%
+        {9}{{\FormatDigit{9}}}{1}%
+        {.0}{{\FormatDigit{.0}}}{2}% Following is to ensure that only periods
+        {.1}{{\FormatDigit{.1}}}{2}% followed by a digit are changed.
+        {.2}{{\FormatDigit{.2}}}{2}%
+        {.3}{{\FormatDigit{.3}}}{2}%
+        {.4}{{\FormatDigit{.4}}}{2}%
+        {.5}{{\FormatDigit{.5}}}{2}%
+        {.6}{{\FormatDigit{.6}}}{2}%
+        {.7}{{\FormatDigit{.7}}}{2}%
+        {.8}{{\FormatDigit{.8}}}{2}%
+        {.9}{{\FormatDigit{.9}}}{2}%
+        %{,}{{\FormatDigit{,}}{1}% depends if you want the "," in color
+		},
+}
+
+% A code block in which single-quotes are digit separators
+% rather than character literals.
+\lstnewenvironment{codeblockdigitsep}{
+ \CodeBlockSetup
+ \lstset{deletestring=[b]{'}}
+}{}
+
+% Permit use of '@' inside codeblock blocks
+\makeatletter
+\newcommand{\atsign}{@}
+\makeatother
+
+
+
