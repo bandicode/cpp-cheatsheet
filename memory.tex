@@ -1,0 +1,454 @@
+\documentclass[10pt,landscape,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{shapes,positioning,arrows,fit,calc,graphs,graphs.standard}
+%\usepackage[nosf]{kpfonts}
+%\usepackage[t1]{sourcesanspro}
+\usepackage{multicol}
+\usepackage{wrapfig}
+\usepackage[top=10mm,bottom=10mm,left=10mm,right=10mm]{geometry}
+\usepackage[framemethod=tikz]{mdframed}
+%\usepackage{microtype}
+\usepackage{pdfpages}
+
+\usepackage[pdftex,
+            pdfauthor={bandicode},
+            pdftitle={C++ Cheatsheet - Memory Management},
+            pdfsubject={Memory Management},
+            pdfkeywords={memory,smart pointers,allocators},
+            pdfproducer={Latex},
+            pdfcreator={pdflatex}]{hyperref}
+
+\include{common/def}
+
+\begin{document}
+
+\CheatsheetTitle{Memory Management}
+
+\small
+\begin{multicols*}{3}
+
+\section*{Manual memory management}
+
+The keywords \tcode{\href{https://en.cppreference.com/w/cpp/language/new}{new}} and 
+\tcode{\href{https://en.cppreference.com/w/cpp/language/delete}{delete}} can be used 
+to create and destroy object on the heap.
+
+\begin{codeblock}
+Foo *foo = new Foo;
+delete foo;
+\end{codeblock}
+
+Unlike stack-allocated arrays, arrays allocated on the heap can have sizes not known 
+at compile time. Memory allocated with \tfcode{new[]} should be freed with \tfcode{delete[]}.
+
+\begin{codeblock}
+int *vec = new int[size];
+delete[] vec;
+\end{codeblock}
+
+\headline{Initialization of dynamically allocated objects}
+
+Objects allocated with \tfcode{new} can be initialized.
+
+\begin{codeblock}
+int *value = new int(42);
+double *vec = new double[]{1.0, 2.0, 3.0};
+\end{codeblock}
+
+\subsection*{Placement new}
+
+An object can be constructed in an already allocated storage using placement new.
+This is done by providing the memory buffer to \tfcode{new}. 
+Note that in such situation, the object should be destroyed by calling its destructor 
+explicitly. 
+
+\begin{codeblock}
+char* ptr = new char[sizeof(T)];
+T* tptr = new (ptr) T;
+tptr->~T();
+delete[] ptr;
+\end{codeblock}
+
+\section*{Automatic memory management}
+
+Today's preferred way to deal with dynamically-allocated memory is 
+through smart-pointers defined in header \tcode{<memory>}.
+
+\subsection*{Smart pointers}
+
+\bgroup
+\def\arraystretch{1.5}
+\def\cellwidth{6cm}
+\begin{tabular}{ l L{\cellwidth} } 
+ \arrayrulecolor{gray}\hline
+   \hlinkb{unique-ptr-anchor}{\tcode{unique\_ptr}} & 
+   smart pointer with unique object ownership semantics \tmark{class template} \\ 
+ \hline
+   \hlinkb{shared-ptr-anchor}{\tcode{shared\_ptr}} & 
+   smart pointer with shared object ownership semantics \tmark{class template} \\ 
+ \hline
+   \hlinkb{weak-ptr-anchor}{\tcode{weak\_ptr}} & 
+   weak reference to an object managed by \hlinkb{shared-ptr-anchor}{\tcode{shared\_ptr}} \tmark{class template} \\ 
+\end{tabular}
+\egroup
+
+\subsubsection*{\hypertarget{unique-ptr-anchor}{\tcode{unique\_ptr}}}
+
+The class template \hrefcode{https://en.cppreference.com/w/cpp/memory/unique_ptr}{std::unique\_ptr} 
+owns an object that it destroys when the unique-pointer goes out of scope. 
+This class satisfies the requirements \hrefrequirements{https://en.cppreference.com/w/cpp/named_req/MoveConstructible}{MoveConstructible} 
+and \hrefrequirements{https://en.cppreference.com/w/cpp/named_req/MoveAssignable}{MoveAssignable} but it is neither 
+copy constructible nor copyable. 
+
+\bgroup
+\def\arraystretch{0}
+\def\cellwidth{7cm}
+\begin{tabular}{ L{\cellwidth} l } 
+ \arrayrulecolor{gray}\hline
+   \begin{hsynopsis}
+template<
+    class T,
+    class Deleter = std::default_delete<T>
+> class unique_ptr;
+   \end{hsynopsis}   & 
+   (1) \\ 
+\end{tabular}
+\egroup
+
+\vspace{-3ex}
+
+The class overloads \tcode{operator*} and \tcode{operator->} so that it can 
+be used as if it was a pointer to the underlying type.
+
+\begin{codeblock}
+{
+  int* raw_ptr = new int(0);
+  std::unique_ptr<int> ptr{raw_ptr};
+  *ptr = 42;
+  // the integer is destroyed by unique\_ptr at
+  // the end of this block
+}
+\end{codeblock}
+
+The class also provides a partial specialization for array types.
+
+\begin{codeblock}
+std::unique_ptr<int[]> ptr{new int[7]};
+ptr[0] = 0;
+\end{codeblock}
+
+\headline{Essentials}
+
+\bgroup
+\def\arraystretch{1.5}
+\def\cellwidth{6cm}
+\begin{tabular}{ l L{\cellwidth} } 
+ \arrayrulecolor{gray}\hline
+    \hrefbf{https://en.cppreference.com/w/cpp/memory/unique_ptr/get}{\tcode{get}} & 
+   returns a pointer to the managed object \tmark{public member function} \\ 
+ \hline
+   \hrefbf{https://en.cppreference.com/w/cpp/memory/unique_ptr/release}{\tcode{release}} & 
+   returns a pointer to the managed object and releases the ownership  \tmark{public member function} \\ 
+ \hline
+   \hrefbf{https://en.cppreference.com/w/cpp/memory/unique_ptr/reset}{\tcode{reset}} & 
+   replaces the managed object  \tmark{public member function} \\ 
+\end{tabular}
+\egroup
+
+\subsubsection*{\hypertarget{shared-ptr-anchor}{\tcode{shared\_ptr}}}
+
+The class template \hrefcode{https://en.cppreference.com/w/cpp/memory/shared_ptr}{std::shared\_ptr} 
+provides a reference-counted pointer. 
+When a shared pointer is copied, the reference counter is incremented. 
+The managed object is destroyed when the last shared pointer referencing it is destroyed.
+
+\bgroup
+\def\arraystretch{0}
+\def\cellwidth{8cm}
+\begin{tabular}{ L{\cellwidth} l } 
+ \arrayrulecolor{gray}\hline
+   \begin{hsynopsis}
+template<class T> class shared_ptr;
+   \end{hsynopsis}   & \\ 
+\end{tabular}
+\egroup
+
+\headline{Essentials}
+
+\bgroup
+\def\arraystretch{1.5}
+\def\cellwidth{6cm}
+\begin{tabular}{ l L{\cellwidth} } 
+ \arrayrulecolor{gray}\hline
+    \hrefbf{https://en.cppreference.com/w/cpp/memory/shared_ptr/get}{\tcode{get}} & 
+   returns a pointer to the managed object \tmark{public member function} \\ 
+ \hline
+   \hrefbf{https://en.cppreference.com/w/cpp/memory/shared_ptr/reset}{\tcode{reset}} & 
+   replaces the managed object \tmark{public member function} \\ 
+ \hline
+   \hrefbf{https://en.cppreference.com/w/cpp/memory/shared_ptr/use_count}{\tcode{use\_count}} & 
+   returns the number of shared\_ptr objects referring to the same managed object  \tmark{public member function} \\ 
+\end{tabular}
+\egroup
+
+Typical implementations contain a pointer to the managed object 
+and a pointer to a \emph{control-block} that stores the number of 
+shared pointers that own the object and the number of weak pointers 
+that refer to the object.
+
+\subsubsection*{\hypertarget{weak-ptr-anchor}{\tcode{weak\_ptr}}}
+
+Weak pointers can be constructed from shared pointers to create a non-owning reference 
+to a managed object.
+Weak pointers can be used when temporary ownership is sufficient, or to 
+break reference cycles.
+
+\headline{Essentials}
+
+\bgroup
+\def\arraystretch{1.5}
+\def\cellwidth{6cm}
+\begin{tabular}{ l L{\cellwidth} } 
+ \arrayrulecolor{gray}\hline
+    \hrefbf{https://en.cppreference.com/w/cpp/memory/weak_ptr/expired}{\tcode{expired}} & 
+   checks whether the referenced object was destroyed \tmark{public member function} \\ 
+ \hline
+   \hrefbf{https://en.cppreference.com/w/cpp/memory/weak_ptr/lock}{\tcode{lock}} & 
+   creates a shared\_ptr that manages the referenced object \tmark{public member function} \\ 
+\end{tabular}
+\egroup
+
+\headline{Use case: breaking reference cycles}
+
+\begin{codeblock}
+struct Node
+{
+  std::vector<std::shared_ptr<Node>> children;
+  std::weak_ptr<Node> parent;
+
+  Node(const std::shared_ptr<Node>& p = nullptr) 
+    : parent(p) { }
+  virtual ~Node() = default;
+};
+\end{codeblock}
+
+\subsection*{Helper functions}
+
+\bgroup
+\def\arraystretch{1.5}
+\def\cellwidth{6cm}
+\begin{tabular}{ l L{\cellwidth} } 
+ \arrayrulecolor{gray}\hline
+   \hrefbf{https://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared}{\tcode{make\_shared}} & 
+   constructs an wrap an object in a shared pointer \tmark{function template} \\ 
+ \hline
+   \hrefbf{https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique}{\tcode{make\_unique}} & 
+   constructs an wrap an object in a unique pointer \tmark{function template} \tsincecxx{14} \\ 
+\end{tabular}
+\egroup
+
+When using \tcode{make\_shared}, only a single memory block large enough to store 
+the managed object and the control block is allocated (the managed object is constructed in-place). 
+Pros: you save a dynamic memory allocation compared to using \tcode{shared\_ptr} constructor; 
+Cons: the allocated memory is released when the last weak pointer referencing the object 
+is destroyed.
+
+\subsection*{Helper class \tcode{enable\_shared\_from\_this}}
+
+The \hrefcode{https://en.cppreference.com/w/cpp/memory/enable_shared_from_this/shared_from_this}{shared\_from\_this} 
+function can be used to obtain a shared pointer from a raw pointer.
+To enable this feature, your class must derive from
+\hrefcode{https://en.cppreference.com/w/cpp/memory/enable_shared_from_this}{std::enable\_shared\_from\_this}.
+
+\bgroup
+\def\arraystretch{0}
+\def\cellwidth{8cm}
+\begin{tabular}{ L{\cellwidth} l } 
+ \arrayrulecolor{gray}\hline
+   \begin{hsynopsis}
+template<class T> class enable_shared_from_this;
+   \end{hsynopsis}   & \\ 
+\end{tabular}
+\egroup
+
+Note that classes deriving from \tcode{enable\_shared\_from\_this} shouldn't be constructed on the stack.
+
+\headline{Example:}
+
+\begin{codeblock}
+class Foo : 
+  public std::enable_shared_from_this<Foo> 
+{ 
+
+};
+/* ... */
+Foo* foo = ...;
+std::shared_ptr<Foo> ptr = foo->shared_from_this();
+\end{codeblock}
+
+\section*{Allocators}
+
+Standard library containers use an \hrefrequirements{https://en.cppreference.com/w/cpp/named_req/Allocator}{Allocator} 
+to allocate and release memory. 
+The default allocator,
+\hrefcode{https://en.cppreference.com/w/cpp/memory/allocator}{std::allocator}, is used 
+if you don't specify any (and is sufficient most of the time).
+
+\bgroup
+\def\arraystretch{0}
+\def\cellwidth{8cm}
+\begin{tabular}{ L{\cellwidth} l } 
+ \arrayrulecolor{gray}\hline
+   \begin{hsynopsis}
+template<class T>  struct allocator;
+   \end{hsynopsis}   & \\ 
+\end{tabular}
+\egroup
+
+\vspace{-3ex}
+
+Custom allocators should at least provide the following:
+
+\headline{Types}
+
+\bgroup
+\def\arraystretch{1.5}
+\def\cellwidth{3cm}
+\begin{tabular}{ L{\cellwidth} L{\cellwidth} } 
+  \arrayrulecolor{gray}
+  \hline
+    \textbf{Type} & 
+    \textbf{Definition} \\
+  \hline
+    \tcode{value\_type} & 
+    \tfcode{T} \\
+\end{tabular}
+\egroup
+
+\headline{Member functions}
+
+\bgroup
+\def\arraystretch{1.5}
+\def\cellwidth{6cm}
+\begin{tabular}{ l L{\cellwidth} } 
+  \arrayrulecolor{gray}
+  \hline    
+    \hrefbf{https://en.cppreference.com/w/cpp/memory/allocator/allocate}{\tcode{allocate}} & 
+    allocates uninitialized storage \tmark{public member function} \\ 
+  \hline
+    \hrefbf{https://en.cppreference.com/w/cpp/memory/allocator/deallocate}{\tcode{deallocate}} & 
+    deallocates storage \tmark{public member function} \\ 
+\end{tabular}
+\egroup
+
+\headline{Minimal allocator with debug output:}
+
+\begin{codeblock}
+template<class Tp>
+struct Alloc {
+  typedef Tp value_type;
+  Alloc() = default;
+  
+  template<class T> Alloc(const Alloc<T>&) {}
+  Tp* allocate(std::size_t n) 
+  {
+    n *= sizeof(Tp);
+    std::cout << "allocating " << n << " bytes\n";
+    return static_cast<Tp*>(::operator new(n));
+  }
+  
+  void deallocate(Tp* p, std::size_t n) 
+  {
+    n *= sizeof(Tp);
+    std::cout << "deallocating " << n << " bytes\n";
+    ::operator delete(p);
+  }
+};
+\end{codeblock}
+
+\begin{codeblock}
+template <class T, class U>
+bool operator==(const Alloc<T>&, const Alloc<U>&) 
+{ return true; }
+
+template <class T, class U>
+bool operator!=(const Alloc<T>&, const Alloc<U>&) 
+{ return false; }
+\end{codeblock}
+
+You can specify various properties of your allocator by specializing the class template 
+\hrefbf{https://en.cppreference.com/w/cpp/memory/allocator_traits}{\tcode{std::allocator\_traits}} 
+for your allocator.
+
+\section*{Overloading operator new \& delete}
+
+You can track allocation and deallocation of user-defined types, or 
+more generally customize the allocation process, by overloading
+\hrefbf{https://en.cppreference.com/w/cpp/memory/new/operator_new}{\tcode{operator new}}.
+This operator supports both global replacements and class-specific overloads.
+
+These overloads are responsible for allocating and deallocating bytes of memory 
+on which actual object are constructed.
+
+\begin{codeblock}
+struct X 
+{
+  static void* operator new(std::size_t sz) 
+  {
+    std::cout << "Allocating X (" << sz << " bytes)\n";
+    return ::operator new(sz);
+  }
+
+  static void operator delete(void* ptr)
+  {
+    std::cout << "Deallocating X\n";
+    ::operator delete(ptr);
+  }
+};
+\end{codeblock}
+
+\section*{Additional Resources}
+
+\href{https://isocpp.org/wiki/faq/freestore-mgmt}{Memory Management}, \href{https://isocpp.org/faq}{C++ Super-FAQ}, \href{https://isocpp.org}{isocpp.org}.
+
+\href{https://en.cppreference.com/w/cpp/memory/new}{Low level memory management}, \href{https://en.cppreference.com/}{en.cppreference.com}.
+
+\vspace{40ex}
+
+\section*{Notes}
+
+\begin{userendnotes}
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+\end{userendnotes}
+
+\end{multicols*}
+
+\end{document}
