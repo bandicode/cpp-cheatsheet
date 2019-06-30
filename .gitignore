@@ -1,0 +1,6 @@
+build/*
+ignore/*
+*.aux
+*.log
+*.out
+*.listing
