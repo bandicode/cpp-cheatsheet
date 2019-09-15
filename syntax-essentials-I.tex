@@ -1,0 +1,424 @@
+\documentclass[10pt,landscape,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{shapes,positioning,arrows,fit,calc,graphs,graphs.standard}
+%\usepackage[nosf]{kpfonts}
+%\usepackage[t1]{sourcesanspro}
+\usepackage{multicol}
+\usepackage{wrapfig}
+\usepackage[top=10mm,bottom=10mm,left=10mm,right=10mm]{geometry}
+\usepackage[framemethod=tikz]{mdframed}
+%\usepackage{microtype}
+\usepackage{pdfpages}
+
+\usepackage[pdftex,
+            pdfauthor={bandicode},
+            pdftitle={C++ Cheatsheet - Syntax Essentials (I)},
+            pdfsubject={Syntax Essentials},
+            pdfkeywords={cpp,syntax},
+            pdfproducer={Latex},
+            pdfcreator={pdflatex}]{hyperref}
+
+\include{common/def}
+
+\begin{document}
+
+\CheatsheetTitle{Syntax Essentials (I)}
+
+\small
+\begin{multicols*}{3}
+
+\section*{Declaring \& Initializing variables}
+
+In \Cpp, a large majority of variables are declared and initialized in one 
+of the following ways.
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l c } 
+  \arrayrulecolor{gray}\hline
+    \tsyntax{type} \tsyntax{name}; & (1) \\ 
+  \hline
+    \tsyntax{type} \tsyntax{name}(\tsyntax{expression-list}); & (2) \\ 
+  \hline
+    \tsyntax{type} \tsyntax{name} = \tsyntax{expression}; & (3) \\ 
+  \hline
+    \tsyntax{type} \tsyntax{name}\{\tsyntax{initializer-list}\}; \tsincecxx{11} & (4) \\ 
+\end{tabular}
+\egroup
+
+\headline{Pointers \& References}
+
+Let \tcode{T} be a fundamental type, a class or an enumeration name in the following paragraphs. 
+
+We write \tcode{T*} the type \emph{pointer to T} that 
+can be used to store the address in memory of a variable of type \tcode{T}.  
+Pointers can have the special value \tcode{nullptr}, indicating that they do not 
+point to any existing object.
+If \tcode{t} is a variable of type \tcode{T*} that is not \tcode{nullptr}, 
+then the expression \tcode{*t} can be used to access the object pointed to.
+
+We write \tcode{T\&} the type \emph{reference to T}, that is an alias to an already existing value.
+Variables of type \tcode{T\&} are used just like those of type \tcode{T}.
+Variables of reference type must be initialized.
+
+\tcode{T\&\&} is a special kind of reference, introduced in \Cpp11 and called a \emph{rvalue-reference}, 
+that is used to extend the lifetime of temporaries and transfer resource ownership.
+
+\headline{Variable initialization}
+
+In \tcode{(1)}, \href{https://en.cppreference.com/w/cpp/language/default_initialization}{default initialization} applies: 
+primitive types are left uninitialized and object types are default constructed. 
+For all other constructs, various forms of initialization take place depending on the context. 
+The most common one are presented below.
+
+%%\headline{Value initialization}
+
+$ \bullet $ When form \tcode{(4)} is used with an empty initializer-list, 
+\href{https://en.cppreference.com/w/cpp/language/value_initialization}{value initialization} 
+is performed: variables of primitive-type are zero-initialized, variables of object-type are default constructed.
+
+%%\headline{Copy initialization}
+
+$ \bullet $ In form \tcode{(3)}, \href{https://en.cppreference.com/w/cpp/language/copy_initialization}{copy initialization} 
+looks for converting constructors or user-defined conversion to initialize the object. 
+
+%%\headline{Direct initialization}
+
+$ \bullet $ Form \tcode{(2)} uses an explicit set of constructor arguments to initialize the object. 
+The expression-list may not be empty (as it would declare a function taking no parameter).
+Unlike copy-initialization, \tcode{explicit} constructors can be used in 
+\href{https://en.cppreference.com/w/cpp/language/direct_initialization}{direct initialization}.
+
+%%\headline{List initialization}
+
+$ \bullet $ In form \tcode{(4)},
+\href{https://en.cppreference.com/w/cpp/language/list_initialization}{list initialization} 
+is performed. All constructors are considered and the best is used to initialize the object. 
+Constructors taking a specialization of \hrefcode{https://en.cppreference.com/w/cpp/utility/initializer_list}{std::initializer\_list} 
+are preferred. 
+
+%%\headline{Reference initialization}
+
+$ \bullet $ Forms \tcode{(2)}, \tcode{(3)} or \tcode{(4)} may be used to initialize variable of reference type.
+Since references must be initialized, form \tcode{(1)} cannot apply.
+
+%%\headline{Aggregate initialization}
+
+$ \bullet $ \href{https://en.cppreference.com/w/cpp/language/aggregate_initialization}{Aggregate initialization} can be used 
+to initialize aggregate.
+
+\headline{auto type deduction}
+
+You can use \tfcode{auto} to let the compiler infer the type of your variable.
+This can be really useful in template code where the actual type of an expression 
+might not be known, or more generally if you do not want to bind a variable to a 
+particular type (e.g. when using iterators).
+
+\begin{codeblock}
+std::vector<int> digits = {0, 1, 2, 3, 4};
+auto it = digits.begin();
+\end{codeblock}
+
+\headline{const qualification}
+
+The \tfcode{const} keyword may be used to make a variable immutable once it has 
+been initialized.
+
+\headline{Uniform initialization}
+
+Brace-initialization can also be used in a variety of contexts (including in return 
+statements and in function arguments) to initialize an object without specifying 
+a type.
+
+\begin{codeblock}
+f({1, 2, 3});
+return {};
+\end{codeblock}
+
+\section*{Functions \& Control Flow}
+
+The main syntax for defining a function is the following:
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \tsyntax{return-type} \tsyntax{name}(\tsyntax{parameter-list}) \{ \tsyntax{statements} \} \\ 
+\end{tabular}
+\egroup
+
+\subsection*{Statements}
+
+$ \bullet $ A variable declaration is a statement.
+
+$ \bullet $ An expression followed by a semicolon is an \tsyntax{expression-statement}.
+
+$ \bullet $ A pair of curly braces containing zero or more statements is a \tsyntax{compound-statement}.
+
+\subsection*{Control flow statements}
+
+\headline{Returning from a function}
+
+Functions having a return type that is not \tcode{void} should 
+\tcode{return} a value. 
+A \tsyntax{return-statement} may also be used without a value in function 
+returning \tcode{void} to return earlier.
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \arrayrulecolor{gray}\hline
+    \tcode{return;} \\ 
+    \hline
+    \tcode{return} \tsyntax{expression}\tcode{;}\\ 
+\end{tabular}
+\egroup
+
+\begin{codeblock}
+int foo(int a, int b, int c)
+{
+  return a + b * c;
+}
+\end{codeblock}
+
+\headline{Selection statements}
+
+Branching is usually done with \tsyntax{if-statements}, when the condition is 
+of integral type, a \tsyntax{switch-statement} may also be used.
+
+\tsyntax{if-statement}:
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \arrayrulecolor{gray}\hline
+    \tcode{if (}\tsyntax{condition}\tcode{)} \tsyntax{statement} \\ 
+    \hline
+    \tcode{if (}\tsyntax{condition}\tcode{)} \tsyntax{statement} \tcode{else} \tsyntax{statement} \\ 
+\end{tabular}
+\egroup
+
+\tsyntax{switch-statement}:
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \arrayrulecolor{gray}\hline
+    \tcode{switch (}\tsyntax{condition}\tcode{)} \tsyntax{statement} \\ 
+\end{tabular}
+\egroup
+
+In case of a switch, the statement is usually a compound statement that contains 
+\tcode{case} and \tcode{default}; and \tfcode{break} has a special meaning.
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \arrayrulecolor{gray}\hline
+    \tcode{case} \tsyntax{constant-expression}\tcode{:} \tsyntax{statement} \\ 
+    \hline
+    \tcode{default:} \tsyntax{statement} \\ 
+\end{tabular}
+\egroup
+
+\headline{Iteration statements (loops)}
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \arrayrulecolor{gray}\hline
+    \tcode{while (}\tsyntax{condition}\tcode{)} \tsyntax{statement} \\ 
+    \hline
+    \tcode{for (}\tsyntax{init}\tcode{; }\tsyntax{condition}\tcode{; }\tsyntax{loop}\tcode{)} \tsyntax{statement} \\ 
+    \hline
+    \tcode{for (}\tsyntax{type} \tsyntax{name} \tcode{:} \tsyntax{container}\tcode{)} \tsyntax{statement} \tsincecxx{11} \\ 
+    \hline
+    \tcode{do} \tsyntax{statement} \tcode{while (}\tsyntax{condition}\tcode{);} \\ 
+\end{tabular}
+\egroup
+
+Inside loops, \tcode{continue} and \tcode{break} can be used respectively to 
+stop the current iteration of the loop and start the next one, and to exit the loop.
+
+ \bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \arrayrulecolor{gray}\hline
+    \tcode{break;} \\ 
+    \hline
+    \tcode{continue;} \\ 
+\end{tabular}
+\egroup
+
+\subsection*{Function parameters}
+
+\headline{Passing by value / Passing by reference}
+
+When the parameter of a function is a reference, the arguments are not copied. 
+If the reference is not \tcode{const}, modifications made to the object inside 
+the function are applied to the original object and therefore visible to the caller.
+
+When the parameter is not a reference, arguments are passed by value (i.e. copied).
+Modifications made to the object modifies the copy and are therefore only visible 
+inside the function.
+
+\headline{Conventions}
+
+Variables of fundamental types are cheap to copy, it can be more 
+efficient to pass them by value, therefore:
+\begin{tightitemize}
+  \item by default, pass variables of fundamental or enum type by value
+  \item pass by reference if you want to modify an existing value
+  \item pass a pointer if you want an optional "output" parameter
+\end{tightitemize}
+
+For variables of class type, the same rules apply, except that:
+\begin{tightitemize}
+  \item by default, pass by const reference to avoid copies
+  \item pass by rvalue-reference if you want to transfer resource ownership
+  \item pass by value if you want to work on a copy
+\end{tightitemize}
+
+\subsection*{Default arguments}
+
+You may specify default arguments that are used in place of missing trailing arguments.
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \tsyntax{parameter-type} \tsyntax{parameter-name} = \tsyntax{default-value} \\ 
+\end{tabular}
+\egroup
+
+Example:
+\begin{codeblock}
+void point(int x = 3, int y = 4);
+point(1); // calls point(1, 4)
+\end{codeblock}
+
+\subsection*{Function overloading}
+
+Two or more functions with the same name may be defined in the same scope, 
+provided that their parameter list differ. Such functions are said to overload 
+one another.
+
+When calling an overloaded function, a process named overload resolution is performed 
+to select the function that will be called. 
+A simplified version of the process can be described as follow:
+\begin{tightitemize}
+  \item first, all functions that do not match the number of arguments provided, or for 
+    which there is one or more arguments that cannot be converted to the parameter type are removed 
+    from the set of candidate to form the set of viable functions;
+  \item the viable functions are then ranked depending on the conversion they imply, 
+    the fact that they are templates and other criterias in order to exhibit a best viable function
+  \item if exactly one viable function is better than all the others, overload resolution succeeds 
+    and this function is called; otherwise, compilation fails. 
+\end{tightitemize}
+
+\headline{deleted functions}
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \tsyntax{return-type} \tsyntax{name}(\tsyntax{parameter-list}) = delete; \tsincecxx{11} \\ 
+\end{tabular}
+\egroup
+
+A function may be marked as deleted by replacing its body by \tcode{= delete;}.
+Deleted functions participate in overload resolution, but if they are selected 
+as the function to call, compilation fails.
+
+\subsection*{Operator overloading}
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    \tsyntax{return-type} operator \tsyntax{op}(\tsyntax{parameter-list}) \tsyntax{body} \\ 
+\end{tabular}
+\egroup
+
+Much like regular functions, operators can be overloaded or marked as deleted. 
+Here is a list of all possible values for \tsyntax{op}:
+\vspace{-\parskip}
+\begin{center}
+    \tfcode{+} \tfcode{-} \tfcode{*} \tfcode{/} \tfcode{\%} \tfcode{\^} \tfcode{\&} 
+    \tfcode{|} \tfcode{\~} \tfcode{!} \tfcode{=} \tfcode{<} \tfcode{>} \tfcode{+=} \tfcode{-=} 
+    \tfcode{*=} \tfcode{/=} \tfcode{\%=} \tfcode{\^\/=} \tfcode{\&=} \tfcode{|=} \tfcode{<<}
+    \tfcode{>>} \tfcode{>>=} \tfcode{<<=} \tfcode{==} \tfcode{!=} \tfcode{<=} \tfcode{>=} 
+    \tfcode{\&\&} \tfcode{||} \tfcode{++} \tfcode{-\/-} \tfcode{,} \tfcode{->*} \tfcode{->} \tfcode{()}
+    \tfcode{[]}\\ 
+\end{center}
+
+Although most operators can be overloaded, there is almost no practical use case for overloading 
+say \tcode{operator,}. 
+Programmers should be careful that overloaded operators keep a semantic close to the 
+built-in operators.
+
+Typical examples of operator overloading include \tcode{+}, \tcode{-}, \tcode{*} and
+\tcode{/} for arithmetic types, \tcode{[]} for containers; \tcode{*} 
+and \tcode{->} for smart-pointers; \tcode{++}, \tcode{-\/-} and \tcode{*}
+for iterators; \tcode{<<} and \tcode{>>} for streams.
+
+
+\subsection*{constexpr functions}
+
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ l } 
+    constexpr \tsyntax{ret-type} \tsyntax{name}(\tsyntax{parameter-list}) \tsyntax{body} \tsincecxx{11} \\ 
+\end{tabular}
+\egroup
+
+A function that fulfills the associated set of requirements may be marked as \tcode{constexpr}.
+Such function can be evaluated at compile-time to produce constant-expressions.
+
+Constexpr functions are most usefull for metaprogramming: "more metaprogramming, less 
+template metaprogramming"!
+
+See \href{https://en.cppreference.com/w/cpp/language/constexpr}{constexpr specifier} for the 
+list of requirements. 
+
+\section*{Additional Resources}
+
+\href{https://en.cppreference.com/w/cpp/language/initialization}{Initialization}, \emph{en.cppreference.com}.
+
+\href{https://en.cppreference.com/w/cpp/language/overload_resolution}{Overload resolution}, \emph{en.cppreference.com}.
+
+\href{https://stackoverflow.com/questions/4421706/what-are-the-basic-rules-and-idioms-for-operator-overloading}{What are the basic rules and idioms for operator overloading?}, \emph{stackoverflow.com}.
+
+\section*{Notes}
+
+\begin{userendnotes}
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+  \hgrayrule
+\end{userendnotes}
+
+\end{multicols*}
+
+\end{document}

@@ -2,6 +2,8 @@
 \usepackage{array}
 \usepackage{makecell}
 
+\usepackage{enumitem}
+
 \usepackage{colortbl} % provides arrayrulecolor
 \usepackage{graphicx}
 \usepackage{relsize}      % provide relative font size changes
@@ -16,6 +18,15 @@
 \makeatother
 
 \setlength{\parindent}{0pt}
+
+\newenvironment{tightitemize}
+{ \vspace{-\topsep}
+  \vspace{4pt}
+  \begin{itemize}[leftmargin=0pt, itemindent=12pt]
+    \setlength{\itemsep}{4pt}
+    \setlength{\parskip}{0pt}
+    \setlength{\parsep}{0pt}      }
+{ \end{itemize} \vspace{-\topsep} \vspace{4pt} } 
 
 %%--------------------------------------------------
 %% Sections & titles
